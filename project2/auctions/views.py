@@ -111,4 +111,7 @@ def register(request):
     
 
 def watchlist(request):
-    return render(request, "auctions/index.html")
+    if request.method == "POST":
+        print("add to watchlist")
+        return render(request, "auctions/watchlist.html")
+    return render(request, "auctions/watchlist.html")

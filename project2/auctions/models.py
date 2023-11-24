@@ -14,6 +14,12 @@ class Item(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
+class Bids(models.Model):
+    user_bid = models.DecimalField(decimal_places=2, max_digits=10)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
 class Comment(models.Model):
     comment = models.CharField(max_length=128)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
