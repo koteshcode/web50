@@ -1,7 +1,16 @@
-{% extends "auctions/layout.html" %}
+{% extends "auctions/layout.html %}
+
 
 {% block body %}
     <div class="container">
         <h3>Watchlist</h3>
+        <ul>
+            {% for listing in watchlist %}
+            <li>
+                {{ listing.item }}
+            </li>
+            {% endfor %}
+        </ul>
+
     </div>
 {% endblock %}
