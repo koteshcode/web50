@@ -17,4 +17,9 @@ class Item(models.Model):
 class Comment(models.Model):
     comment = models.CharField(max_length=128)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE) 
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Watchlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlists')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='watchlists')

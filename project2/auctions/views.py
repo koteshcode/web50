@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Item
+from .models import User, Item, Watchlist
 
 class ItemForm(forms.Form):
     title = forms.CharField(max_length=64)
@@ -112,6 +112,15 @@ def register(request):
 
 def watchlist(request):
     if request.method == "POST":
-        print("add to watchlist")
-        return render(request, "auctions/watchlist.html")
-    return render(request, "auctions/watchlist.html")
+ 
+        item = Item.objects.get(title=request.POST["watchlist"])
+        watchlist = Watchlist(user=request.user, item=item)
+        watchlist.save()
+        return render(request, "auctions/watchlist.html", {
+            "watchlist": watchlist
+        })
+    
+    user_list = Item.objects.filter(watchlists__user=request.user)
+    return render(request, "auctions/watchlist.html", {
+        "user_list": user_list
+    })

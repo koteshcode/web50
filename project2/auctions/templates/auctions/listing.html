@@ -10,7 +10,7 @@
             <div class="col-6">
                 <div class="row m-2">
                     <div >
-                        <h3>{{ listing.title}}</h3>
+                        <h3>{{ listing.title }}</h3>
                         <span class="text-break">{{ listing.description }}</span>
                     </div>
                 </div>
@@ -21,7 +21,7 @@
             {% if user.is_authenticated %}
             <form action="{% url 'watchlist' %}" method="post">
                 {% csrf_token %}
-                <button class="btn btn-primary" type="submit" value="{{ listing.title }}">Add to watchlist</button>
+                <button class="btn btn-primary" type="submit" name="watchlist" value="{{ listing.title }}">Add to watchlist</button>
             </form>
             {% endif %}
         </div>

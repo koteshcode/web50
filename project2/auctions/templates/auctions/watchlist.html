@@ -1,16 +1,20 @@
-{% extends "auctions/layout.html %}
+{% extends "auctions/layout.html" %}
 
 
 {% block body %}
     <div class="container">
         <h3>Watchlist</h3>
         <ul>
-            {% for listing in watchlist %}
-            <li>
-                {{ listing.item }}
-            </li>
+            {{ watchlist.item.title }}
+        </ul>
+        {% if user_list %}
+        <ul>
+            {% for item in user_list %}
+                <li>
+                    {{ item.title }}
+                </li>
             {% endfor %}
         </ul>
-
+        {% endif %}
     </div>
 {% endblock %}
