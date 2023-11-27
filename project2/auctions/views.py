@@ -44,17 +44,24 @@ def create(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         f = ItemForm()
-        print(request.user)
         return render(request, "auctions/create.html", {
             "form": f
         })
 
 
 def listing(request, title):
+    item_in_watchlist = False
+    # Get item from db
     listing = Item.objects.get(title=title)
-    
+
+    # Check if user has this listing in watchlist
+    if listing.watchlists.filter(user=request.user).exists():
+        item_in_watchlist = True
+        print("true")
+
     return render(request, "auctions/listing.html", {
-        "listing": listing
+        "listing": listing,
+        "item_in_watchlist": item_in_watchlist
     })
 
 
@@ -112,15 +119,27 @@ def register(request):
 
 def watchlist(request):
     if request.method == "POST":
- 
+        # Get item from db
         item = Item.objects.get(title=request.POST["watchlist"])
-        watchlist = Watchlist(user=request.user, item=item)
-        watchlist.save()
-        return render(request, "auctions/watchlist.html", {
-            "watchlist": watchlist
-        })
+        
+        # If this user has item in watchlist
+        if item.watchlists.filter(user=request.user).exists():
+            # Remove from watchlist
+            print(f"remove {item.id} {item.title}")
+            item.watchlists.filter(user=request.user).delete()
+        # If user has not item in watchlist
+        else:
+            print("save")
+            # Save to watchlist
+            watchlist = Watchlist(user=request.user, item=item)
+            watchlist.save()
+        return HttpResponseRedirect(reverse("watchlist"))
     
     user_list = Item.objects.filter(watchlists__user=request.user)
     return render(request, "auctions/watchlist.html", {
         "user_list": user_list
     })
+
+
+def check_watchlist(user, item):
+    return user.watchlists.filter(item=item).exists()

@@ -4,9 +4,7 @@
 {% block body %}
     <div class="container">
         <h3>Watchlist</h3>
-        <ul>
-            {{ watchlist.item.title }}
-        </ul>
+
         {% if user_list %}
         <ul>
             {% for item in user_list %}
@@ -15,6 +13,8 @@
                 </li>
             {% endfor %}
         </ul>
+        {% else %}
+        <span>No listing in wathclist</span>
         {% endif %}
     </div>
 {% endblock %}
