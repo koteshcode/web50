@@ -17,11 +17,14 @@ class ItemForm(forms.Form):
 
 
 def index(request):
-    url = Item.objects.get(id=8)
-    print(url.image_url, url.title)
     return render(request, "auctions/index.html", {
         "items": Item.objects.all()
     })
+
+
+def close_listing(request):
+    item = Item.objects.get(title=request["close_listing"])
+    return render(request, "auctions/close-listing.html")
 
 
 def categories(request):
@@ -53,11 +56,11 @@ def listing(request, title):
     item_in_watchlist = False
     # Get item from db
     listing = Item.objects.get(title=title)
-
     # Check if user has this listing in watchlist
-    if listing.watchlists.filter(user=request.user).exists():
-        item_in_watchlist = True
-        print("true")
+    if request.user.is_authenticated:
+        if listing.watchlists.filter(user=request.user).exists():
+            item_in_watchlist = True
+            print("true")
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
@@ -115,9 +118,11 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
-    
 
+
+@login_required
 def watchlist(request):
+    # If user went through POST
     if request.method == "POST":
         # Get item from db
         item = Item.objects.get(title=request.POST["watchlist"])
@@ -127,6 +132,9 @@ def watchlist(request):
             # Remove from watchlist
             print(f"remove {item.id} {item.title}")
             item.watchlists.filter(user=request.user).delete()
+        
+        if "close_listing" in request.POST:
+            print("close listing")
         # If user has not item in watchlist
         else:
             print("save")
@@ -134,7 +142,7 @@ def watchlist(request):
             watchlist = Watchlist(user=request.user, item=item)
             watchlist.save()
         return HttpResponseRedirect(reverse("watchlist"))
-    
+    # Render user watchlist
     user_list = Item.objects.filter(watchlists__user=request.user)
     return render(request, "auctions/watchlist.html", {
         "user_list": user_list

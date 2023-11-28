@@ -2,3 +2,13 @@ body {
     padding: 10px;
 }
 
+
+.image-placeholder {
+    width: 400px;
+    height: 200px;
+    background-color: #327cbd;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

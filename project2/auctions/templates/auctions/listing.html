@@ -5,7 +5,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <img class="img-fluid" src="{{ listing.image_url}}" width="300" height="200">
+                <img class="img-fluid image-placeholder" src="{{ listing.image_url}}" width="300" height="200">
             </div>
             <div class="col-md-8">
                 <div class="row m-2">
@@ -18,16 +18,24 @@
                     <h5>Price: ${{ listing.bid }}</h5>
                 </div>
             </div>
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and request.user != listing.seller%}
             <form action="{% url 'watchlist' %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="watchlist" value="{{ listing.title }}">
                 {% if item_in_watchlist %}
-                    <button class="btn btn-primary" type="submit" name="remove_from_watchlist">Remove from watchlist</button>
+                    <button class="btn btn-primary" type="subnit" name="remove_from_watchlist">Remove from watchlist</button>
                 {% else %}
                     <button class="btn btn-primary" type="submit" name="add_to_watchlist">Add to watchlist</button>
                 {% endif %}
             </form>
+            {% elif user.is_authenticated and request.user == listing.seller %}
+            <form action="{% url 'close-listing' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="close_listing" value="{{ listing.title }}">
+                <button class="btn btn-primary" type="submit" name="close_listing">Close listing</button>
+            </form>
+            {% else %}
+                <p><a class="btn btn-primary disabled m-2" role="button" aria-disabled="true">Add to wathclist</a>  <a class="" href="{% url 'login' %}">Log In</a> or <a class="" href="{% url 'register' %}">Register</a> for add to watchlist</p>
             {% endif %}
         </div>
     </div>

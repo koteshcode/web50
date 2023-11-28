@@ -6,6 +6,7 @@ class User(AbstractUser):
     pass
 
 class Item(models.Model):
+    is_active = models.BooleanField(default=True)
     title = models.CharField(max_length=64)
     image_url = models.URLField(blank=True)
     description = models.TextField(max_length=200)
