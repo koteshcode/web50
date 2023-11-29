@@ -20,11 +20,17 @@
                 </div>
                 <div class="row m-2">
                     <div class="col-md-6 col-sm-6">
-                        {% if user.is_authenticated %}
+                        {% if not listing.is_active %}
+                        <form class="input-group">
+                            <span class="input-group-text">Sold for:</span>
+                            <label class="form-label" for="new_bid"></label>
+                            <input class="form-control" type="number" name="new_bid" placeholder="${{ listing.bid }}" disabled>
+                        </form>
+                        {% elif user.is_authenticated %}
                         <form class="input-group" method="post">
                             {% csrf_token %}
                             <span class="input-group-text w-50 justify-content-end">Price:</span>
-                            <input class="form-control" type="number" name="new_bid" placeholder="${{ listing.bid }}">
+                            <input class="form-control" type="number" name="new_bid" step="0.01" placeholder="${{ listing.bid }}">
                             <button class="btn btn-primary px-3" type="submit">Bid</button>
                         </form>
                         {% else %}
@@ -37,7 +43,9 @@
                         {% endif %}
                     </div>
                     <div class="col-md-6 col-sm-6">
-                        {% if user.is_authenticated and request.user != listing.seller %}
+                        {% if not listing.is_active %}
+                        <!-- If listing is not active remove button with wathclist -->
+                        {% elif user.is_authenticated and request.user != listing.seller %}
                         <form action="{% url 'watchlist' %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="watchlist" value="{{ listing.title }}">

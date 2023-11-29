@@ -1,3 +1,5 @@
+import decimal
+
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -24,6 +26,13 @@ def index(request):
     })
 
 
+def archive(request):
+    listing = Item.objects.get(title=request.POST["title"])
+    return render(request, "auctions/arhcive.html", {
+        "listing": listing
+    })
+
+
 def close_listing(request):
     if request.method == "POST":
     #if "close_listing" in request.POST:
@@ -37,9 +46,11 @@ def close_listing(request):
         user_with_highest_bid = None
         if highest_bid is not None:
             user_with_highest_bid = item.bids.get(user_bid=highest_bid).user
-
+        item_sold = f"You sold {item.title} for ${highest_bid}"
         print(f"close listing {item.title} is {user_with_highest_bid}")
-    return render(request, "auctions/close-listing.html")
+    return render(request, "auctions/close-listing.html", {
+        "item_sold": item_sold
+    })
 
 
 def categories(request):
@@ -79,8 +90,8 @@ def listing(request, title):
     # Check if listing is active
     if not listing.is_active:
         print("Listing no longer active")
-        messages.error("Listing no longer active")
-        return render(request, "auctions/archive.html", {
+        messages.error(request, "Listing no longer active")
+        return render(request, "auctions/listing.html", {
             "listing": listing
         })
     # Check if user has this listing in watchlist
@@ -92,8 +103,9 @@ def listing(request, title):
     if request.method == "POST":
         # Get value of new bid 
         try:
-            new_bid = int(request.POST["new_bid"])
-        except ValueError:
+            new_bid = decimal.Decimal(request.POST["new_bid"])
+        except decimal.InvalidOperation:
+            
             messages.error(request, "Input your bet")
             return render(request, "auctions/listing.html", {
                 "listing": listing,
@@ -103,6 +115,7 @@ def listing(request, title):
         # Check if bid is lower than current bid
         if new_bid <= listing.bid:
             # Return error message
+            print(item_in_watchlist)
             messages.error(request, "Your bid is lower than the current highest bid")
             return render(request, "auctions/listing.html", {
                 "listing": listing,
