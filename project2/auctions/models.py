@@ -18,6 +18,15 @@ class Item(models.Model):
         return f"{self.title}"
 
 
+class Bid(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="bids")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")
+    user_bid = models.DecimalField(decimal_places=2, max_digits=10)
+    
+    def __str__(self):
+        return f"User {self.user} for {self.item} - {self.user_bid}"
+    
+    
 class Comment(models.Model):
     comment = models.CharField(max_length=128)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)

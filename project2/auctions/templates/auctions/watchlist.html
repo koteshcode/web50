@@ -3,13 +3,13 @@
 
 {% block body %}
     <div class="container">
-        <h3>Watchlist</h3>
+        <h2>Watchlist</h2>
 
         {% if user_list %}
         <ul>
             {% for item in user_list %}
                 <li>
-                    {{ item.title }}
+                    <h3> <a href="listing/{{ item.title }}">{{ item.title }}</a></h3>
                 </li>
             {% endfor %}
         </ul>
