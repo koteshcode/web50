@@ -13,7 +13,7 @@ class Item(models.Model):
     category = models.CharField(max_length=16, blank=True)
     bid = models.DecimalField(decimal_places=2, max_digits=10)
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
-    winner = models.ForeignKey(User, blank=True, on_delete=models.CASCADE, related_name="winer")
+    winner = models.ForeignKey(User, blank=True, on_delete=models.CASCADE, null=True, related_name="winer")
     
     def __str__(self):
         return f"{self.title}"

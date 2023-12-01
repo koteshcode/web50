@@ -29,9 +29,16 @@
                         {% elif user.is_authenticated %}
                         <form class="input-group" method="post">
                             {% csrf_token %}
+                            {% if request.user != listing.seller %}
                             <span class="input-group-text w-50 justify-content-end">Price:</span>
                             <input class="form-control" type="number" name="new_bid" step="0.01" placeholder="${{ listing.bid }}">
                             <button class="btn btn-primary px-3" type="submit">Bid</button>
+                            {% elif request.user == listing.seller %}
+                            <span class="input-group-text w-50 justify-content-end">Current bid:</span>
+                            <input class="form-control" type="number" name="new_bid" step="0.01" placeholder="${{ listing.bid }}" disabled>
+                            {% else %}
+
+                            {% endif %}
                         </form>
                         {% else %}
                         <form class="input-group" action="{% url 'login' %}">
@@ -80,9 +87,15 @@
         <div class="row justify-content-center mt-3">
             <div class="col-md-8">
                 <h3>Comments</h3>
-                <form>
-                    <textarea class="form-control" placeholder="Leave a comment"></textarea>
+                <form method="post">
+                    {% csrf_token %}
+                    <textarea class="form-control mb-2" name="comment" placeholder="Leave a comment"></textarea>
+                    <button class="btn btn-primary mb-2" type="submit">Comment</button>
                 </form>
+                {% for comment in comments %}
+                <h5>{{comment.user}}</h5>
+                <p>{{comment.comment}}</p>
+                {% endfor %}
             </div>
         </div>
     </div>
