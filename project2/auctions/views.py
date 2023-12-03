@@ -56,12 +56,25 @@ def close_listing(request):
     })
 
 
-def category(request):
-    return render(request, "auctions/category.html")
+def category(request, category):
+    if category == "Non category":
+        listings = Item.objects.filter(category="")
+        print(listings)
+        return render(request, "auctions/category.html", {
+        "category": category,
+        "listings": listings
+        })
+    listings = Item.objects.filter(category=category)
+    return render(request, "auctions/category.html", {
+        "category": category,
+        "listings": listings
+    })
+
 
 def categories(request):
     listings = Item.objects.all()
     categories = []
+    categories.append("Non category")
     for listing in listings:
         if listing.category == "":
             print("empty")
