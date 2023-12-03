@@ -6,7 +6,10 @@
         <div class="row justify-content-center">
             <div class="col-md-4">
                 {% if listing.image_url %}
-                <img class="img-fluid image-placeholder" src="{{ listing.image_url }}" width="400" height="200">
+                <img class="listing-cover" src="{{ listing.image_url }}" width="100%" height="200" style="
+                justify-content: center;
+                align-items: center;
+                object-fit: contain;">
                 {% else %}
                 <div class="img-fluid rounded image-placeholder">Image not available</div>
                 {% endif %}

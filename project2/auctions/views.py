@@ -56,8 +56,22 @@ def close_listing(request):
     })
 
 
+def category(request):
+    return render(request, "auctions/category.html")
+
 def categories(request):
-    return render(request, "auctions/index.html")
+    listings = Item.objects.all()
+    categories = []
+    for listing in listings:
+        if listing.category == "":
+            print("empty")
+        elif listing.category not in categories:
+            print(listing.category)
+            categories.append(listing.category)
+    return render(request, "auctions/categories.html", {
+        "categories": categories
+    })
+
 
 @login_required
 def create(request):

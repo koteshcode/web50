@@ -10,7 +10,10 @@
         <div class="row m-auto">
             <div class="col-md-6 col-lg-4">
                 {% if item.image_url.strip %}
-                <img class="img-fluid image-placeholder" src="{{ item.image_url }}" width="400" height="200">
+                <img class="listing-cover" src="{{ item.image_url }}" width="100%" height="200" style="
+                justify-content: center;
+                align-items: center;
+                object-fit: contain;">
                 {% else %}
                 <div class="img-fluid rounded image-placeholder">Image not available</div>
                 {% endif %}
