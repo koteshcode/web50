@@ -56,17 +56,27 @@ def close_listing(request):
     })
 
 
-def category(request):
-    return render(request, "auctions/category.html")
+def category(request, category):
+    if category == "Non category":
+        listings = Item.objects.filter(category="")
+        return render(request, "auctions/category.html", {
+        "category": category,
+        "listings": listings
+        })
+    listings = Item.objects.filter(category=category)
+    return render(request, "auctions/category.html", {
+        "category": category,
+        "listings": listings
+    })
 
 def categories(request):
     listings = Item.objects.all()
     categories = []
+    categories.append("Non category")
     for listing in listings:
         if listing.category == "":
             print("empty")
         elif listing.category not in categories:
-            print(listing.category)
             categories.append(listing.category)
     return render(request, "auctions/categories.html", {
         "categories": categories
@@ -247,17 +257,20 @@ def watchlist(request):
         # If this user has item in watchlist
         if item.watchlists.filter(user=request.user).exists():
             # Remove from watchlist
-            print(f"remove {item.id} {item.title}")
+            print(f"remove {item.title} {request.user}")
             item.watchlists.filter(user=request.user).delete()
         # If user has not item in watchlist
         else:
             print("save")
             # Save to watchlist
+            print(item)
             watchlist = Watchlist(user=request.user, item=item)
+            print(watchlist)
             watchlist.save()
         return HttpResponseRedirect(reverse("watchlist"))
     # Render user watchlist
     user_list = Item.objects.filter(watchlists__user=request.user)
+    print(user_list)
     return render(request, "auctions/watchlist.html", {
         "user_list": user_list
     })

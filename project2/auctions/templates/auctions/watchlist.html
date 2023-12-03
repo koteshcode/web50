@@ -7,11 +7,11 @@
 
         {% if user_list %}
         <ul>
-            {% for item in user_list %}
-                <li>
-                    <h3> <a href="listing/{{ item.title }}">{{ item.title }}</a></h3>
-                </li>
-            {% endfor %}
+            <ul class="list-group list-group-flush">
+                {% for item in user_list %}
+                    <li class="list-group-item list-group-item-action" style="border: 0"> <a class="fs-5" href="listing/{{ item.title }}">{{ item.title }}</a> </li>
+                {% endfor %}
+            </ul>
         </ul>
         {% else %}
         <span>No listing in wathclist</span>
