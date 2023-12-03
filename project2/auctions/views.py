@@ -69,6 +69,7 @@ def category(request, category):
         "listings": listings
     })
 
+
 def categories(request):
     listings = Item.objects.all()
     categories = []
@@ -77,6 +78,7 @@ def categories(request):
         if listing.category == "":
             print("empty")
         elif listing.category not in categories:
+            print(listing.category)
             categories.append(listing.category)
     return render(request, "auctions/categories.html", {
         "categories": categories
@@ -263,14 +265,11 @@ def watchlist(request):
         else:
             print("save")
             # Save to watchlist
-            print(item)
             watchlist = Watchlist(user=request.user, item=item)
-            print(watchlist)
             watchlist.save()
         return HttpResponseRedirect(reverse("watchlist"))
     # Render user watchlist
     user_list = Item.objects.filter(watchlists__user=request.user)
-    print(user_list)
     return render(request, "auctions/watchlist.html", {
         "user_list": user_list
     })
