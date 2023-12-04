@@ -116,7 +116,6 @@ def listing(request, title):
     # Get item from db
     listing = Item.objects.get(title=title)
     comments = Comment.objects.filter(item=listing.id)
-
     # Check if listing is active
     if not listing.is_active and f"{listing.winner}" == f"{request.user}":
         print(f"Listing sold to {listing.winner}")

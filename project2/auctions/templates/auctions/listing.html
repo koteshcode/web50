@@ -82,6 +82,14 @@
                 {% endif %}
                 </div>
             </div>
+            <div class="row">
+                <div class="col-4">
+                    Listed by <span class="fw-bold">{{ listing.seller }}</span>
+                </div>
+                <div class="col-8">
+                    Categories: <a href="/category/{{ listing.category }}">{{ listing.category }}</a>
+                </div>
+            </div>
         </div>
     </div>
     <hr>
