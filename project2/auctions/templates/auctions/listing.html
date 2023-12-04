@@ -1,0 +1,42 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-4">
+                <img src="{{ listing.image_url}}" width="300" height="200">
+            </div>
+            <div class="col-6">
+                <div class="row m-2">
+                    <div >
+                        <h3>{{ listing.title}}</h3>
+                        <span class="text-break">{{ listing.description }}</span>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <h5>Price: ${{ listing.bid }}</h5>
+                </div>
+            </div>
+            {% if user.is_authenticated %}
+            <form action="{% url 'watchlist' %}" method="post">
+                {% csrf_token %}
+                <button class="btn btn-primary" type="submit" value="{{ listing.title }}">Add to watchlist</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <hr>
+    <div class="container">
+
+        <div class="row justify-content-center mt-3">
+            <div class="col-8">
+                <h3>Comments</h3>
+                <form>
+                    <textarea cols="100" rows="2" placeholder="Leave a comment"></textarea>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
