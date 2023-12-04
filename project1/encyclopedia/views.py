@@ -53,6 +53,7 @@ def edit(request):
         f = EntryForm(request.POST)
         if f.is_valid():    
             title = f.cleaned_data["title"]
+            print(title)
             # Add title to content page
             content = f"# {title}\n\n{f.cleaned_data['content']}"
             # Save content from textarea to server and render this page
@@ -116,7 +117,7 @@ def search(request):
 
 def title(request, title):
     page = util.get_entry(title)
-    t = page.split("\n")[0].strip("#").lstrip()
+    t = page.split("\n")[0].strip("#").lstrip().rstrip()
     if page:
         # Convert markdown page to HTML
         page = convert(page)
