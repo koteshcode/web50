@@ -1,0 +1,26 @@
+{% extends "encyclopedia/layout.html" %}
+{% block title%}
+Edit
+{% endblock %}
+{% block body %}
+
+<div class="container">
+    <div class="col-10 mx-auto">
+        <form class="form=control mt-4" action="{% url 'edit' %}" method="post">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+                <input class="form-control-plaintext" value="{{ title }}" id="title" name="title" placeholder="title" type="text" readonly>
+                <label for="title">Title</label>
+            </div>
+            <div class="form-floating mb-3">
+                <textarea class="form-control" placeholder="Type page content" id="content" name="content" style="height: 80vh">{{ content }}</textarea>
+                <label for="content">Edit</label>
+            </div>
+            <div class="d-grid d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-primary ">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
