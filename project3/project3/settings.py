@@ -81,6 +81,8 @@ DATABASES = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 AUTH_USER_MODEL = 'mail.User'
 
 # Password validation
