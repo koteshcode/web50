@@ -45,24 +45,36 @@ function load_mailbox(mailbox) {
     console.log(emails)
     mail_list(emails)})
   .catch(error => {
-    console.log("Error:", error)
+    console.error("Error:", error)
   });
 
-  // When user click on email list 
+  // When user click on email list to read
   emailsList.addEventListener('click', event => {
+    // If list of emails is inside inbox
+    if (document.querySelector('ul')) {
     // Look for parent email to find out email ID
     let parent = findParent(event.target);
-    function findParent(element) {
-      if (element.tagName === 'A') {return element}
-      return findParent(element.parentElement)
-    }
+
     console.log(`final ${parent.tagName}`)
     // Open selected mail
     fetch(`emails/${parent.id}`)
     .then(response => response.json())
     .then(mail => open_mail(mail))
+    .catch(error => console.error('Error:', error))
+    }
+
   });
 }
+
+
+function findParent(element) {
+  /** 
+   * Recursevly looking for element with "A" 
+   */ 
+  if (element.tagName === 'A') {return element}
+  return findParent(element.parentElement)
+}
+
 
 function mail_list(emails){
   const emailsList = document.querySelector('#emails-list');
@@ -78,7 +90,7 @@ function mail_list(emails){
   }
   if (listBody.childElementCount < emails.length) {
     // Separate new emails from the existing mails in inbox
-    // for here is append into end of the list
+    // for now here is append into end of the list
     const newMails = emails.filter( obj => obj.id > listBody.firstElementChild.id);
     console.log('add new mails')
     newMails.forEach(mail => createNewEmailListItem(mail, listBody));
@@ -86,9 +98,10 @@ function mail_list(emails){
 }
 
 function open_mail(mail) {
-  // Get mail from session storage
+  // Create elements for mail view
   document.querySelector('#emails-list').innerHTML = '';
-  const element =  document.createElement('div');
+  document.querySelector('#emails-header').innerHTML = '';
+  const element = document.createElement('div');
   const mailHeader = document.createElement('div');
   const sender = document.createElement('p');
   const recipients = document.createElement('p');
@@ -96,11 +109,11 @@ function open_mail(mail) {
   const timestamp = document.createElement('p');
   const mailBody = document.createElement('div');
 
-  sender.innerHTML = mail.sender;
-  recipients.innerHTML = mail.recipients;
-  subject.innerHTML = mail.subject;
-  timestamp.innerHTML = mail.timestamp;
-  mailBody.innerHTML = mail.body
+  sender.innerHTML = `<span class='fw-bold'>From</span>: ${mail.sender}`;
+  recipients.innerHTML = `<span class='fw-bold'>From</span>: ${mail.recipients}`;
+  subject.innerHTML = `<span class='fw-bold'>From</span>: ${mail.subject}`;
+  timestamp.innerHTML = `<span class='fw-bold'>From</span>: ${mail.timestamp}`;
+  mailBody.innerHTML = `<hr>${mail.body}`;
 
   mailHeader.append(sender);
   mailHeader.append(recipients);
@@ -108,22 +121,30 @@ function open_mail(mail) {
   mailHeader.append(timestamp);
 
   element.append(mailHeader);
-  element.append(mailBody)
+  element.append(mailBody);
   document.querySelector('#emails-list').append(element);
+  fetch(`emails/${mail.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: true
+    })
+  });
 }
 
 
 function submit_mail(event) {
   
-  //const t = event.taret.parentElement.querySelectorAll('.form-control')
+  // Select form 
   const q = document.querySelectorAll('.form-control');
   let recipients, subject, body
+  // Take values from form array
   q.forEach(q => {
-    if (q.valueOf().id === 'compose-recipients') {recipients = q.valueOf().value; console.log(recipients) }
-    else if (q.valueOf().id === 'compose-subject'){ subject = q.valueOf().value; console.log(subject) }
-    else if (q.valueOf().id === 'compose-body'){ body = q.valueOf().value; console.log(body)  }
+    if (q.valueOf().id === 'compose-recipients') {recipients = q.valueOf().value;}
+    else if (q.valueOf().id === 'compose-subject') { subject = q.valueOf().value;}
+    else if (q.valueOf().id === 'compose-body') { body = q.valueOf().value;}
   });
   
+  // Send mail to server
   fetch('/emails', {
     method: 'POST',
     body: JSON.stringify({
@@ -133,7 +154,12 @@ function submit_mail(event) {
     })
   })
   .then(response => response.json())
-  .then(result => console.log(result));
+  .then(result => {
+    console.log(result);
+    const message = document.createElement('p');
+    message.innerHTML = result.error;
+    document.querySelector('#compose-form').append(message)})
+  .catch(error => console.log('Error: ', error))
 }
 
 function createNewEmailListItem(mail, listBody) {
@@ -143,13 +169,23 @@ function createNewEmailListItem(mail, listBody) {
   const timestamp = document.createElement('small');
   const header = document.createElement('div');
   header.className = "d-flex w-100 justify-content-between";
-  timestamp.className = 'text-muted';
+
   header.append(subject);
   header.append(timestamp);
   timestamp.innerHTML = mail.timestamp;
   sender.innerHTML =  `Sent by: ${mail.sender}`;
   subject.innerHTML = mail.subject;
-  listItem.className = 'list-group-item list-group-item-action';
+  // If mail has been read
+  if (mail.read === true) {
+    // Set color to secondary
+    listItem.className = 'list-group-item list-group-item-action list-group-item-light text-secondary';
+    timestamp.className = 'text-secondary';
+  } else {
+    // If else set color to normal
+    listItem.className = 'list-group-item list-group-item-action';
+    timestamp.className = 'text-muted';
+  };
+  listItem.href = '#';
   listItem.id = mail.id;
   listItem.append(header)
   listItem.append(sender)
