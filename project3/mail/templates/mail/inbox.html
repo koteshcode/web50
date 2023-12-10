@@ -12,6 +12,10 @@
     <hr>
 
     <div id="emails-view">
+        <h3 id="emails-header"></h3>
+        <div id="emails-list">
+
+        </div>
     </div>
 
     <div id="compose-view">
@@ -27,11 +31,11 @@
                 <input class="form-control" id="compose-subject" placeholder="Subject">
             </div>
             <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
-            <input type="submit" class="btn btn-primary"/>
+            <input type="submit" class="btn btn-primary" id="submit-mail"/>
         </form>
     </div>
 {% endblock %}
 
 {% block script %}
-    <script src="{% static 'mail/inbox.js' %}"></script>
+<script src="{% static 'mail/inbox.js' %}"></script>
 {% endblock %}
