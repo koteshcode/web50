@@ -13,23 +13,23 @@
 
     <div id="emails-view">
         <h3 id="emails-header"></h3>
-        <div id="emails-list">
-        </div>
+        <div id="emails-list"></div>
     </div>
     <div id="mail-view"></div>
     <div id="compose-view">
         <h3>New Email</h3>
-        <form id="compose-form">
-            <div class="form-group">
+        <div id="message"></div>
+        <form id="compose-form mb-2">
+            <div class="form-group mb-2">
                 From: <input disabled class="form-control" value="{{ request.user.email }}">
             </div>
-            <div class="form-group">
+            <div class="form-group mb-2">
                 To: <input id="compose-recipients" class="form-control">
             </div>
-            <div class="form-group">
+            <div class="form-group mb-2">
                 <input class="form-control" id="compose-subject" placeholder="Subject">
             </div>
-            <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
+            <textarea class="form-control mb-2" id="compose-body" rows="6" placeholder="Body"></textarea>
             <input type="submit" class="btn btn-primary" id="submit-mail"/>
         </form>
     </div>
