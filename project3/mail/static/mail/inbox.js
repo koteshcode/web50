@@ -184,25 +184,6 @@ function open_mail(mail) {
   });
 }
 
-function reply_mail(mail) {
-  // Show the mailbox and hide other views
-  document.querySelector('#emails-view').style.display = 'none';
-  document.querySelector('#compose-view').style.display = 'block';
-  document.querySelector('#mail-view').style.display = 'none';
-
-  const q = document.querySelectorAll('.form-control');
-  const message = document.querySelector('#message');
-  message.innerHTML = '';
-  let recipients, subject, body
-  // Take values from form array
-  q.forEach(q => {
-    if (q.valueOf().id === 'compose-recipients') {recipients = q.valueOf().value;}
-    else if (q.valueOf().id === 'compose-subject') { subject = q.valueOf().value;}
-    else if (q.valueOf().id === 'compose-body') { body = q.valueOf().value;}
-  });
-
-}
-
 function submit_mail(event) {
   // Select form 
   const q = document.querySelectorAll('.form-control');
