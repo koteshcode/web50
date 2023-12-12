@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#submit-mail').addEventListener('click', event => submit_mail(event));
   // By default, load the inbox
   load_mailbox('inbox');
+  history.pushState({status: 'inbox'}, '')
 });
 
 function compose_email(event) {
@@ -17,9 +18,9 @@ function compose_email(event) {
   document.querySelector('#compose-view').style.display = 'block';
   document.querySelector('#mail-view').style.display = 'none';
 
-  // Clear out composition fields
+  // If user get to compose to reply
   if (event.target.innerHTML === 'Reply') {
-    console.log(`Reply to ${event.target.value}`)
+    // Fetch mail to which reply
     fetch(`emails/${event.target.value}`)
     .then(response => response.json())
     .then(mail => {
@@ -34,10 +35,12 @@ function compose_email(event) {
       document.querySelector('#compose-body').value = responseHead + mail.body + '\n';
       document.querySelector('#compose-body').focus();
     })
+  } else {
+    // Clear out composition fields
+    document.querySelector('#compose-recipients').value = '';
+    document.querySelector('#compose-subject').value = '';
+    document.querySelector('#compose-body').value = '';
   }
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
 }
 
 function load_mailbox(mailbox) {
@@ -63,19 +66,20 @@ function load_mailbox(mailbox) {
   .then(emails => mail_list(emails)) // Create list of elements from emails
   .catch(error => console.log("Error:", error));
 
-  // When user click on email list to read meail
+  // Add listener for click on mail list
   emailsList.addEventListener('click', event => {
-    // If list of emails is inside inbox
+    // If list exist inside inbox
     if (document.querySelector('ul')) {
-      // Look for parent email to find out email ID
+      // Look for parent element of email it should be A
       let parent = findParent(event.target);
-
-      console.log(`final ${parent.tagName}`)
       // Open selected mail
       fetch(`emails/${parent.id}`)
       .then(response => response.json())
-      .then(mail => open_mail(mail))
-      .catch(error => console.error('Error:', error))
+      .then(mail => {
+        open_mail(mail);
+        history.pushState({status: 'view'}, '');
+      })
+      .catch(error => console.log('Error:', error))
     }
   });
 }
@@ -84,7 +88,7 @@ function findParent(element) {
   /** 
    * Recursevly looking for element with "A" 
    */ 
-  if (element.tagName === 'A') {return element}
+  if (element.tagName === 'BUTTON') {return element}
   return findParent(element.parentElement)
 }
 
@@ -94,7 +98,6 @@ function mail_list(emails){
   listBody.className = 'list-group';
   // Check for new emails of user
   emailsList.append(listBody);
-  console.log(listBody.childElementCount)
   if (listBody.childElementCount === 0) {
     console.log("load first time")
     emails.forEach(mail => createNewEmailListItem(mail, listBody));
@@ -127,7 +130,7 @@ function open_mail(mail) {
   recipients.innerHTML = `<span class='fw-bold'>To</span>: ${mail.recipients}`;
   subject.innerHTML = `<span class='fw-bold'>Subject</span>: ${mail.subject}`;
   timestamp.innerHTML = `<span class='fw-bold'>Timestamp</span>: ${mail.timestamp}`;
-  mailBody.innerHTML = `<hr>${mail.body}`;
+  mailBody.innerHTML = `<hr>${mail.body}<hr>`;
 
   mailHeader.append(sender);
   mailHeader.append(recipients);
@@ -144,24 +147,26 @@ function open_mail(mail) {
   reply.value = mail.id;
   element.append(reply);
 
-  reply.addEventListener('click', event => compose_email(event));
+  // Add event on button to send for compose mail to reply
+  reply.addEventListener('click', event => {
+    history.pushState({status: 'view'}, '')
+    compose_email(event)});
 
   // Create archive button for mail if view is inbox or archive
   if (document.querySelector('#emails-header').innerHTML !== 'Sent') {
 
     // Prepare button
     const archive = document.createElement('button');
-    reply.className = 'btn btn-primary';
     archive.className = 'btn btn-primary';
-    reply.innerHTML = 'Reply';
-    // Get status of mail
+
+    // Get status of mail and set button name to opposite
     if (mail.archived === true ) {
       archive.innerHTML = 'Unarchive';
     } else {
       archive.innerHTML = 'Archive';}
     element.insertBefore(archive, reply);
 
-    // Add listener to archive
+    // Add listener to archive button
     archive.addEventListener('click', () => {
       console.log(mail.archived)
       // Send request with opposite state to arhive or unarhive 
@@ -171,7 +176,9 @@ function open_mail(mail) {
           archived: !mail.archived
         })
       })
-      .then(() => load_mailbox('inbox'));
+      .then(() => {
+        history.pushState({status: 'archive'}, '');
+        load_mailbox('inbox')});
     })
   }
 
@@ -212,12 +219,13 @@ function submit_mail(event) {
     if (result.error) {
       message.innerHTML = result.error;
       message.className = 'text-danger';
+      history.pushState({page : Compose}, '', 'Compose')
     } else {load_mailbox('sent')}})
   .catch(error => console.log('Error: ', error))
 }
 
 function createNewEmailListItem(mail, listBody) {
-  const listItem = document.createElement('a');
+  const listItem = document.createElement('button');
   const subject = document.createElement('h5');
   const sender = document.createElement('small');
   const timestamp = document.createElement('small');
@@ -235,11 +243,10 @@ function createNewEmailListItem(mail, listBody) {
     listItem.className = 'list-group-item list-group-item-action list-group-item-light text-secondary';
     timestamp.className = 'text-secondary';
   } else {
-    // If else set color to normal
+    // Else set color to normal
     listItem.className = 'list-group-item list-group-item-action';
     timestamp.className = 'text-muted';
   };
-  listItem.href = '#';
   listItem.id = mail.id;
   listItem.append(header)
   listItem.append(sender)

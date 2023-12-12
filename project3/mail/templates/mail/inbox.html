@@ -16,10 +16,10 @@
         <div id="emails-list"></div>
     </div>
     <div id="mail-view"></div>
-    <div id="compose-view">
+    <div id="compose-view" style="display: none;">
         <h3>New Email</h3>
         <div id="message"></div>
-        <form id="compose-form mb-2">
+        <div id="compose-form mb-2">
             <div class="form-group mb-2">
                 From: <input disabled class="form-control" value="{{ request.user.email }}">
             </div>
@@ -31,7 +31,7 @@
             </div>
             <textarea class="form-control mb-2" id="compose-body" rows="6" placeholder="Body"></textarea>
             <input type="submit" class="btn btn-primary" id="submit-mail"/>
-        </form>
+        </div>
     </div>
 {% endblock %}
 
