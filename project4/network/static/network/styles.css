@@ -1,0 +1,8 @@
+#likes-button {
+    color: #c13333;
+    cursor: pointer;
+}
+
+#likes-button:hover {
+    color:#e2504b;
+}

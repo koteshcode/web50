@@ -1,18 +1,47 @@
 {% extends "network/layout.html" %}
-
+{% load static %}
 {% block body %}
 <div class="container">
     <h3>All posts</h3>
-    <div class="container p-4 border rounded">
+    <div class="container p-4 mb-3 border rounded">
+        
+        {% if user.is_authenticated %}
         <h5>New post</h5>
-        <textarea class="form-control mb-2" id="message" rows="3"></textarea>
-        <button class="btn btn-primary mb-2" type="submit">Post</button>
-    </div>
+        <form action="{% url 'new_post' %}" method="POST">
+            {% csrf_token %}
+            <textarea class="form-control mb-2" type="text" name="message" id="message" rows="3"></textarea>
+            <button class="btn btn-primary mb-2" name="submit-post" type="submit">Post</button>
+        </form>
+        {% else %}
+        <p class="text-center"><a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a> to post what are you think about</p>
+        {% endif %}
 
+        {% if message %}
+        <p class="text-center text-danger py-0">{{ message }}</p>
+        {% endif %}
+
+    </div>
     <div class="container p-4 border rounded">
-        <div class="">
-            
+        <div class="" id="posts-view">
+            {% for post in posts %}
+            <h5>{{ post.user }}</h5>
+            {% if request.user == post.user %}
+            <a href="">Edit</a>
+            {% endif %}
+            <p>{{ post.post }}</p>
+            <div class="row">
+                <div class="col-3">
+                    <a><i class="bi bi-heart"></i></a> {{ post.likes.count }}
+                </div>
+                <div class="col-6"><span class="text-muted">{{ post.timestamp }}</span></div>
+            </div>
+            <hr>
+            {% endfor %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'network/post.js' %}"></script>
 {% endblock %}

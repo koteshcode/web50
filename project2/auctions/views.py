@@ -31,6 +31,7 @@ def categories(request):
 def create(request):
     if request.method == "POST":
         f = ItemForm(request.POST)
+        print(type(f))
         if f.is_valid():
             item = Item()
             
