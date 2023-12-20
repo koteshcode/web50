@@ -2,62 +2,136 @@ document.addEventListener('DOMContentLoaded', function () {
     loadPosts();
 })
 
+async function editPost(event, id) {
+    const post = await fetchPost(id);
+    const button = event.target;
+    // Check current target
+    if (button.innerHTML !== 'Edit') {
+        return console.error("Error: Bad button")
+    } else if (button.nextElementSibling.id !== 'post') {
+        return console.error("Error: Wrong post")
+    } else if (username !== button.previousElementSibling.innerHTML) {
+        return console.error('Error: Bad user')
+    }
+    // Check if on the page is save button
+    if (document.querySelector('#edit-post')){removeSaveButton()};
+    // Prepare buttons and textarea
+    const originalPost = button.nextElementSibling;
+    const saveButton = document.createElement('a');
+    const editPost = document.createElement('textarea');
+    editPost.className = 'form-control mb-2';
+    editPost.innerHTML = originalPost.innerHTML;
+
+    saveButton.innerHTML = 'Save';
+    saveButton.href = 'javascript:void(0)';
+    saveButton.id = 'edit-post';
+
+    button.parentNode.insertBefore(editPost, originalPost);
+    button.parentNode.insertBefore(saveButton, editPost);
+    // Set focus to the end of textarea
+    editPost.setSelectionRange(originalPost.innerHTML.length, originalPost.innerHTML.length);
+    editPost.focus();
+    // Remove event on edit post 
+    originalPost.style.display = 'none';
+    button.style.display = 'none';
+    // Add event on save post
+    saveButton.addEventListener('click', () => {
+        // Check if post has been changed
+        if  (originalPost.innerHTML !== editPost.value) {
+            // Request to save post via PUT
+            fetch(`like_post/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    type: 'Edit post',
+                    post: editPost.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Succes') {
+                    console.log('Succes');
+                    originalPost.innerHTML = data.data.post;
+                    removeSaveButton();
+                } else {error = data.error}
+            })
+            .catch(error => console.log(error))
+        } else {removeSaveButton()} // Remove save button
+    })
+}
+
 function loadPosts() {
     let postsView = document.querySelector('#posts-view');
-    console.log('hi')
     fetch('posts')
     .then(response => response.json())
     .then(posts => {
         const postElements = [];
         posts.forEach(post => {
-            postElements.push(composePost(post))
+            postElements.push(composePost(post));
         })
-        postElements.forEach(post => postsView.appendChild(post))
+        postElements.forEach(post => postsView.appendChild(post));
     })
-    .catch(error => console.error(error))
+    .catch(error => console.error(error));
+}
 
+async function likePost(event, id) {
+    const post  = await fetchPost(id);
+    // Prepare 
+    const button = event.target;
+    const counter = event.target.nextElementSibling;
+    let liked = false;
+    // If liked
+    if (!post.user_liked.includes(username)) {
+        event.target.className = 'bi bi-heart-fill' // Like
+        liked = true;
+    } else {
+        event.target.className = 'bi bi-heart' // Unlike
+    }
+    // Send request for update likes
+    fetch(`like_post/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            type: 'Modify like',
+            liked: liked
+        })
+    })
+    .then(response => response.json())
+    .then(data => {counter.textContent = data.data.likes})
+    .then(message => console.log(message))
+    .catch(error => console.error(error));
 }
 
 function composePost(post) {
+    // Create post
     let p = createPostElement();
+    // Add post data into post
     p.querySelector('#user').innerHTML = post.user;
     p.querySelector('#post').innerHTML = post.post;
     p.querySelector('#timestamp').innerHTML = post.timestamp;
     p.querySelector('#likes-count').innerHTML = post.likes;
+    const likesButton = p.querySelector('#likes-button');
     // Check if user is liked current post and render filled heart
-    if (post.user_liked.includes(username)) {
-        console.log('User liked')
-        p.querySelector('#likes-button').className = 'bi bi-heart-fill';
+    if (post.user_liked.includes(username) && username !== '') {
+        likesButton.className = 'bi bi-heart-fill';
     } else {
-        p.querySelector('#likes-button').className = 'bi bi-heart';
+        likesButton.className = 'bi bi-heart';
     }
-    // Add edit button for user post
+    // Add edit button for post if user is author
     if (username === post.user) {
-        console.log('Author')
         const edit = document.createElement('a');
         edit.innerHTML = 'Edit';
-        edit.href = '#';
+        edit.className = 'mb-2';
+        edit.href = 'javascript:void(0)';
         p.insertBefore(edit, p.querySelector('#post'));
-    }
 
-    p.querySelector('#likes-button').addEventListener('click', function () {
-        let liked = false;
-        if (!post.user_liked.includes(username)) {
-            console.log('Like')
-            liked = true;
-        } else (console.log('Unlike'))
-        // Send request for like or unlike to server
-        fetch(`like_post/${post.id}`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                liked: liked
-            })
-        })
-        .then(response => response.json())
-        .then(message => console.log(message))
-        .catch(error => console.error(error))
-    })
-    return p
+        // Define function to handle edit events
+        edit.addEventListener('click', (event) => editPost(event, post.id));
+    }
+    // Add click listener on like button
+    if (username !== '') {
+        likesButton.addEventListener('click', (event) => likePost(event, post.id));
+    }
+    
+    return p;
 }
 
 function createPostElement() {
@@ -95,4 +169,25 @@ function createPostElement() {
     post.append(separator)
     
     return post;
+}
+
+function removeSaveButton() {
+    const old = document.querySelector('#edit-post');
+    old.previousElementSibling.style.display = 'inline';
+    old.nextElementSibling.remove();
+    old.parentElement.querySelector('#post').style.display = 'block';
+    old.remove();
+}
+
+async function fetchPost(id) {
+    try {
+      const response = await fetch(`like_post/${id}`);
+      const data = await response.json();
+      const post = await data.data;
+      const message = await data.message;
+      return post; // The fetched data
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      return null; // Handle the error gracefully
+    }
 }

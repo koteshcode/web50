@@ -23,20 +23,6 @@
     </div>
     <div class="container p-4 border rounded">
         <div class="" id="posts-view">
-            {% for post in posts %}
-            <h5>{{ post.user }}</h5>
-            {% if request.user == post.user %}
-            <a href="">Edit</a>
-            {% endif %}
-            <p>{{ post.post }}</p>
-            <div class="row">
-                <div class="col-3">
-                    <a><i class="bi bi-heart"></i></a> {{ post.likes.count }}
-                </div>
-                <div class="col-6"><span class="text-muted">{{ post.timestamp }}</span></div>
-            </div>
-            <hr>
-            {% endfor %}
         </div>
     </div>
 </div>

@@ -76,6 +76,7 @@ def register(request):
 
 def posts(request):
     print('posts')
+    print(request.user)
     posts = Post.objects.all()
     posts = posts.order_by("-timestamp").all()
     return JsonResponse([post.serialize() for post in posts], safe=False, status=201)
@@ -101,15 +102,41 @@ def new_post(request):
 @csrf_exempt
 @login_required
 def like_post(request, post_id):
+    user = request.user
     try:
         post = Post.objects.get(id=post_id)
     except Post.DoesNotExist:
         return JsonResponse({"error": "Post not found."}, status=404)
-    print(post)
+    
     if request.method == 'PUT':
-
-        print(f"Like post {post_id}")
-        return JsonResponse({"message": "Post liked!"}, status=201)
+        data = json.loads(request.body)
+        
+        if data.get("type") == "Modify like":
+            # if user has liked
+            if data.get("liked") == True:
+                post.likes.add(user)
+                post.save()
+                return JsonResponse({
+                    "data": post.serialize(),
+                    "message": "Post liked!"}, status=201)
+            elif data.get("liked") == False:
+                post.likes.remove(user)
+                post.save()
+                return JsonResponse({
+                    "data": post.serialize(),
+                    "message": "Post unliked!"}, status=201)
+        elif data.get('type') == "Edit post" and post_id == post.id:
+            post.post = data.get("post")
+            post.save()
+            return JsonResponse({
+                "data": post.serialize(),
+                "message": "Succes"}, status=201)
+        else:
+            return JsonResponse({"error": "Something went wrong"}, status=403)
+    elif request.method == "GET":
+        return JsonResponse({
+            "data": post.serialize(),
+            "message": "Post!"}, status=201)
 
     # Handle other HTTP methods if needed
     return JsonResponse({"error": "Invalid request method."}, status=400)
