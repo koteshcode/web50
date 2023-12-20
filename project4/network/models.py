@@ -5,6 +5,10 @@ from django.db import models
 class User(AbstractUser):
     pass
 
+class Follower(models.Model):
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="user_following")
+    follower = models.ForeignKey("User", on_delete=models.CASCADE, related_name="user_follower")
+
 class Post(models.Model):
     post = models.TextField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)

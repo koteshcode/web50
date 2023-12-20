@@ -8,3 +8,5 @@ project2/auctions/migrations/0006_alter_item_bid_alter_item_image.py
 project2/auctions/migrations/0007_remove_item_image_item_image_url.py
 project2/auctions/migrations/0008_comment_bids.py
 project2/auctions/migrations/0009_delete_bids.py
+__pycache__/
+/migrations/*
