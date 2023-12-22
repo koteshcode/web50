@@ -21,13 +21,27 @@ def index(request):
         "posts": posts
     })
 
+
 def follow(request, user_id):
-    print("!FollowinG!!")
     following = User.objects.get(id=user_id)
-    
     follower = Follower.objects.filter(user=following, follower=request.user)
     
     return HttpResponse(reverse("index"))
+
+
+@login_required
+def following(request):
+    return render(request, "network/following.html")
+
+
+@login_required
+def following_posts(request):
+    user = User.objects.get(username=request.user)
+    user_following = user.user_follower.values_list("user", flat=True)
+    posts = Post.objects.filter(user__in=user_following)
+    posts = posts.order_by("-timestamp").all()
+    return JsonResponse([post.serialize() for post in posts], safe=False, status=201)
+    
 
 def login_view(request):
     if request.method == "POST":
@@ -82,8 +96,6 @@ def register(request):
 
 
 def posts(request):
-    print('posts')
-    print(request.user)
     posts = Post.objects.all()
     posts = posts.order_by("-timestamp").all()
     return JsonResponse([post.serialize() for post in posts], safe=False, status=201)
@@ -100,10 +112,9 @@ def posts_user(request, user_id):
 def posts_user_like(request, post_id):
     return HttpResponseRedirect(reverse("like_post", kwargs={"post_id": post_id}))
 
-
+@csrf_exempt
 @login_required
 def new_post(request):
-    print('new post')
     if request.method == "POST":
         if request.POST["message"] == "":
             print('empty')
@@ -162,7 +173,6 @@ def like_post(request, post_id):
 
 
 @csrf_exempt
-@login_required
 def user(request, user_id):
     # Get data of looked user
     user_look = User.objects.get(id=user_id)
@@ -173,21 +183,30 @@ def user(request, user_id):
         # Count followers and following
         
         user_look_follows = Follower.objects.filter(follower=user_id).count()
-        # Check if user follows looled user
-        is_follow = Follower.objects.filter(user=user_id, follower=request.user).exists()
-        if not is_follow and f"{request.user}" != f"{user_look.username}":
-            follow = True
-        elif is_follow:
-            follow = False
-        else: 
-            follow = None
-        return render(request, "network/user.html", {
-            "follow": follow,
-            "user_look": user_look,
-            "user_look_posts": user_look_posts,
-            "followers": user_look_followers,
-            "follows": user_look_follows
-        })
+        # Check if user follows looked user
+        if request.user.is_authenticated:
+            is_follow = Follower.objects.filter(user=user_id, follower=request.user).exists()
+            if not is_follow and f"{request.user}" != f"{user_look.username}":
+                follow = True
+            elif is_follow:
+                follow = False
+            else: 
+                follow = None
+            return render(request, "network/user.html", {
+                "follow": follow,
+                "user_look": user_look,
+                "user_look_posts": user_look_posts,
+                "followers": user_look_followers,
+                "follows": user_look_follows
+            })
+        else:
+                return render(request, "network/user.html", {
+                "follow": None,
+                "user_look": user_look,
+                "user_look_posts": user_look_posts,
+                "followers": user_look_followers,
+                "follows": user_look_follows
+            })
     # When request to put changes in db
     elif request.method == "PUT":
         data = json.loads(request.body)
@@ -199,7 +218,6 @@ def user(request, user_id):
             Follower.objects.create(user=user_look, follower=request.user)
             return JsonResponse({"followers": user_look_followers, "message": "Follows."}, status=201)
         else:
-            print('unfollow')
             Follower.objects.filter(user=user_look, follower=request.user).delete()
             return JsonResponse({"followers": user_look_followers, "message": "Unfollows."}, status=201)
     # Return error if method not supports

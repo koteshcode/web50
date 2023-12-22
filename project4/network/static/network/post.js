@@ -6,13 +6,12 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (document.querySelector('#user-view')) {
         loadUserPosts();
     }
-    if (document.querySelector('#following')) {
-        document.querySelector('#following').addEventListener('click', () => following())
+    if (document.querySelector('#following-view')) {
+        following()
     }
 })
 
 async function editPost(event, id) {
-    const post = await fetchPost(id);
     const button = event.target;
     // Check current target
     if (button.innerHTML !== 'Edit') {
@@ -69,7 +68,17 @@ async function editPost(event, id) {
 }
 
 function following() {
-    
+    let postsView = document.querySelector('#posts-view');
+    fetch('following_posts')
+    .then(response => response.json())
+    .then(posts => {
+        const postElements = [];
+        posts.forEach(post => {
+            postElements.push(fillPost(post));
+        })
+        postElements.forEach(post => postsView.appendChild(post));
+    })
+    .catch(error => console.error(error));
 }
 
 function loadPosts() {

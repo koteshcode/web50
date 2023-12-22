@@ -7,8 +7,9 @@
     <p><span class="me-4" id="following" >Following: {{ followers }}</span>
         <span class="ms-4" id="follows">Follows: {{ follows }}</span>
     </p>
+    <input type="hidden" id="user-id" value="{{ user_look.id }}">
     {% if user.is_authenticated %}
-        <input type="hidden" id="user-id" value="{{ user_look.id }}">
+        
         {% if follow == False %}
         <button type="submit" id="follow-user" class="btn btn-primary">Unfollow</button>
         {% elif follow == True %}

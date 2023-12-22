@@ -6,6 +6,8 @@ from . import views
 urlpatterns = [
     path("", views.index, name="index"),
     path("follow/<int:user_id>", views.follow, name="follow"),
+    path("following", views.following, name="following"),
+    path("following_posts", views.following_posts, name="following_posts"),
     path("new_post", views.new_post, name="new_post"),
     path("accounts/login/", views.login_view, name="login"),
     path("login", views.login_view, name="login"),

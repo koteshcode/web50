@@ -18,15 +18,16 @@ async function followUser(butFollow) {
             })
         });
         const data = response.json();
-        data.then(message => console.log(message));
-        data.then(followers => console.log(followers));
-
+        data.then(data => {
+            if ( isFollow === true ) { 
+                butFollow.innerHTML = 'Unfollow';
+                document.querySelector('#following').innerHTML = 'Following: ' + (data.followers + 1);
+            } else if ( isFollow === false) {
+                butFollow.innerHTML = 'Follow';
+                document.querySelector('#following').innerHTML = 'Following: ' + (data.followers - 1);
+            }
+            isFollow = false;
+        });
+        data.then(data => console.log(data.message))
     } catch (error) {console.error('Error fecthing data',error)}
-    // Change follower counter
-    if (isFollow) { document.querySelector('#following').innerHTML = ""}
-    else {}
-
-    butFollow.innerHTML = 'Unfollow';
-    isFollow = false;
-    
 }
