@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-    loadPosts();
+    
+    if (document.querySelector('#index-view')) {
+        loadPosts();
+    }
+    else if (document.querySelector('#user-view')) {
+        loadUserPosts();
+    }
+    if (document.querySelector('#following')) {
+        document.querySelector('#following').addEventListener('click', () => following())
+    }
 })
 
 async function editPost(event, id) {
@@ -8,15 +17,15 @@ async function editPost(event, id) {
     // Check current target
     if (button.innerHTML !== 'Edit') {
         return console.error("Error: Bad button")
-    } else if (button.nextElementSibling.id !== 'post') {
+    } else if (button.parentElement.nextElementSibling.id !== 'post') {
         return console.error("Error: Wrong post")
-    } else if (username !== button.previousElementSibling.innerHTML) {
+    } else if (username !== button.parentElement.previousElementSibling.innerHTML) {
         return console.error('Error: Bad user')
     }
     // Check if on the page is save button
-    if (document.querySelector('#edit-post')){removeSaveButton()};
+    if (document.querySelector('#edit-post')) { removeSaveButton() };
     // Prepare buttons and textarea
-    const originalPost = button.nextElementSibling;
+    const originalPost = button.parentElement.nextElementSibling;
     const saveButton = document.createElement('a');
     const editPost = document.createElement('textarea');
     editPost.className = 'form-control mb-2';
@@ -26,8 +35,8 @@ async function editPost(event, id) {
     saveButton.href = 'javascript:void(0)';
     saveButton.id = 'edit-post';
 
-    button.parentNode.insertBefore(editPost, originalPost);
-    button.parentNode.insertBefore(saveButton, editPost);
+    button.parentElement.parentNode.insertBefore(editPost, originalPost);
+    button.parentElement.parentNode.insertBefore(saveButton, editPost);
     // Set focus to the end of textarea
     editPost.setSelectionRange(originalPost.innerHTML.length, originalPost.innerHTML.length);
     editPost.focus();
@@ -59,6 +68,10 @@ async function editPost(event, id) {
     })
 }
 
+function following() {
+    
+}
+
 function loadPosts() {
     let postsView = document.querySelector('#posts-view');
     fetch('posts')
@@ -66,7 +79,23 @@ function loadPosts() {
     .then(posts => {
         const postElements = [];
         posts.forEach(post => {
-            postElements.push(composePost(post));
+            postElements.push(fillPost(post));
+        })
+        postElements.forEach(post => postsView.appendChild(post));
+    })
+    .catch(error => console.error(error));
+}
+
+function loadUserPosts() {
+    let postsView = document.querySelector('#posts-view');
+    const user_id = document.querySelector('#user-id');
+    console.log(user_id)
+    fetch(`posts_user/${user_id.value}`)
+    .then(response => response.json())
+    .then(posts => {
+        const postElements = [];
+        posts.forEach(post => {
+            postElements.push(fillPost(post));
         })
         postElements.forEach(post => postsView.appendChild(post));
     })
@@ -100,14 +129,16 @@ async function likePost(event, id) {
     .catch(error => console.error(error));
 }
 
-function composePost(post) {
+function fillPost(post) {
     // Create post
     let p = createPostElement();
     // Add post data into post
     p.querySelector('#user').innerHTML = post.user;
+    p.querySelector('#user').href = `/user/${post.user_id}`;
     p.querySelector('#post').innerHTML = post.post;
     p.querySelector('#timestamp').innerHTML = post.timestamp;
     p.querySelector('#likes-count').innerHTML = post.likes;
+
     const likesButton = p.querySelector('#likes-button');
     // Check if user is liked current post and render filled heart
     if (post.user_liked.includes(username) && username !== '') {
@@ -118,10 +149,13 @@ function composePost(post) {
     // Add edit button for post if user is author
     if (username === post.user) {
         const edit = document.createElement('a');
+        const div = document.createElement('div');
+        div.className = 'my-2';
         edit.innerHTML = 'Edit';
         edit.className = 'mb-2';
         edit.href = 'javascript:void(0)';
-        p.insertBefore(edit, p.querySelector('#post'));
+        div.append(edit)
+        p.insertBefore(div, p.querySelector('#post'));
 
         // Define function to handle edit events
         edit.addEventListener('click', (event) => editPost(event, post.id));
@@ -137,21 +171,22 @@ function composePost(post) {
 function createPostElement() {
     // Prepare elements
     const post = document.createElement('div'); // entire post
-    const user = document.createElement('h5'); // user name
+    const user = document.createElement('a'); // user name
     const body = document.createElement('p'); // post body
     const likes = document.createElement('div'); // likes column
     const likesCount = document.createElement('span'); // likes
     const likesButton = document.createElement('i');
     const timestamp = document.createElement('div'); // timestamp
     const footer = document.createElement('div'); // create footer for post
-    const separator = document.createElement('hr')
+    const separator = document.createElement('hr');
 
     // Configure elements
     user.id = 'user';
     body.id = 'post';
     likesCount.id = 'likes-count';
     likesButton.id = 'likes-button';
-
+    
+    user.className = 'text-decoration-none text-body fs-6 fw-semibold';
     footer.className = 'row';
     likes.className = 'col-3';
     likesCount.className = 'fs-5 mx-2'
@@ -173,7 +208,7 @@ function createPostElement() {
 
 function removeSaveButton() {
     const old = document.querySelector('#edit-post');
-    old.previousElementSibling.style.display = 'inline';
+    old.previousElementSibling.firstElementChild.style.display = 'inline';
     old.nextElementSibling.remove();
     old.parentElement.querySelector('#post').style.display = 'block';
     old.remove();
@@ -188,6 +223,6 @@ async function fetchPost(id) {
       return post; // The fetched data
     } catch (error) {
       console.error('Error fetching data:', error);
-      return null; // Handle the error gracefully
+      return null;
     }
 }

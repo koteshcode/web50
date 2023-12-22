@@ -19,6 +19,7 @@ class Post(models.Model):
         return {
             "id": self.id,
             "user": self.user.username,
+            "user_id": self.user.id,
             "likes": self.likes.count(),
             "user_liked": [like.username for like in self.likes.all()],
             "post": self.post,
