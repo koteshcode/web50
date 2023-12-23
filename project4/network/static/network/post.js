@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     
     if (document.querySelector('#index-view')) {
-        loadPosts();
+        loadPosts(1);
     }
     else if (document.querySelector('#user-view')) {
         loadUserPosts();
@@ -81,16 +81,20 @@ function following() {
     .catch(error => console.error(error));
 }
 
-function loadPosts() {
+function loadPosts(pageNumber) {
     let postsView = document.querySelector('#posts-view');
-    fetch('posts')
+    postsView.innerHTML = '';
+    const url = `/posts/?page=${pageNumber}`;
+    fetch(url)
     .then(response => response.json())
-    .then(posts => {
+    .then(data => {
         const postElements = [];
-        posts.forEach(post => {
+        const pagesCount = data.meta.pagescount;
+        data.data.forEach(post => {
             postElements.push(fillPost(post));
         })
         postElements.forEach(post => postsView.appendChild(post));
+        fillPaginator(pagesCount, pageNumber);
     })
     .catch(error => console.error(error));
 }
@@ -138,9 +142,80 @@ async function likePost(event, id) {
     .catch(error => console.error(error));
 }
 
+function fillPaginator(count, number) {
+    const old = number;
+    const paginator = document.querySelector('#paginator');
+    const prev = document.querySelector('#page-prev');
+    const next = document.querySelector('#page-next');
+    if (paginator.querySelectorAll('.number')) {
+        // Clear all pages inside paginator
+        paginator.querySelectorAll('.number').forEach(item => item.remove())
+    }
+    // Add pages paginations for pages count
+    for (let i = 0; i < count; i++) {
+        let page = composePaginatorElement();
+        page.firstElementChild.innerHTML = i + 1;
+        page.id = `page-${i + 1}`;
+        paginator.insertBefore(page, next);
+    }
+    // Set active page 
+    paginator.querySelector(`#page-${number}`).className = 'page-item number active';
+    // Disable next or prev switcher for first or last pages
+    if (number === 1) {prev.className = 'page-item disabled'}
+    else if (number === count) (next.className = 'page-item disabled');
+
+    function handlePageClick(event) {
+        // Check if user clicked on pagintator pages
+        if (event.target.classList.contains('page-link')) {
+            if (event.target.classList.contains('disabled')) {return false};
+        
+            // If user click on next button
+            if (event.target.classList.contains('next')) {
+                number++;
+                // Change state of page switchers
+                if (event.target.parentElement.parentElement.querySelector('#page-prev').className === 'page-item disabled') {
+                    prev.className = 'page-item';
+                }
+                if (number === count) {
+                    next.className = 'page-item disabled';
+                }
+            }
+            // If user click on previous button
+            else if (event.target.classList.contains('prev')) {
+                // Set page number -1
+                number--;
+                // Change state of page selectors
+                if (event.target.parentElement.parentElement.querySelector('#page-next').className === 'page-item disabled') {
+                    next.className = 'page-item';
+                }
+                if (number === 1) {
+                    prev.className = 'page-item disabled';
+                }
+            } else {
+                // Set page number to target
+                number = parseInt(event.target.innerHTML);
+                // Update status for switchers
+                if (number === 1) {prev.className = 'page-itam disabled'}
+                else { prev.className = 'page-item'};
+                if (number === count) {next.className = 'page-itam disabled'}
+                else { next.className = 'page-item'};
+            }
+            // Disable current active page selector
+            paginator.querySelector('.active').className = 'page-item number';
+            // Set active page for selected page
+            paginator.querySelector(`#page-${number}`).className = 'page-item number active';
+            // Fetch new page if selected page is not current 
+            if (old !== number ) { loadPosts(number); }
+            paginator.removeEventListener('click', handlePageClick);
+        }
+    }
+    // Add event listener 
+    paginator.addEventListener('click', handlePageClick);
+}
+
 function fillPost(post) {
     // Create post
-    let p = createPostElement();
+    let p = composePostElement();
     // Add post data into post
     p.querySelector('#user').innerHTML = post.user;
     p.querySelector('#user').href = `/user/${post.user_id}`;
@@ -177,7 +252,17 @@ function fillPost(post) {
     return p;
 }
 
-function createPostElement() {
+function composePaginatorElement() {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    item.className = 'page-item number';
+    link.className = 'page-link';
+    link.href='#';
+    item.append(link);
+    return item;
+}
+
+function composePostElement() {
     // Prepare elements
     const post = document.createElement('div'); // entire post
     const user = document.createElement('a'); // user name

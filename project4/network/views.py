@@ -1,5 +1,6 @@
 import json
 
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -98,7 +99,18 @@ def register(request):
 def posts(request):
     posts = Post.objects.all()
     posts = posts.order_by("-timestamp").all()
-    return JsonResponse([post.serialize() for post in posts], safe=False, status=201)
+    paginator = Paginator(posts, 3)  # Show 10 posts per page
+    page_number = request.GET.get("page")
+    print(page_number)
+    print(f"Page counts {paginator.num_pages}")
+    page_obj = paginator.get_page(page_number)
+    serialized_posts = [post.serialize() for post in page_obj]
+    return JsonResponse({
+        "data":serialized_posts,
+        "meta": {
+            "pagescount": paginator.num_pages
+            },
+        }, safe=False, status=201)
 
 
 def posts_user(request, user_id):
