@@ -42,7 +42,7 @@ def following_posts(request):
     posts = Post.objects.filter(user__in=user_following)
     posts = posts.order_by("-timestamp").all()
     paginator = Paginator(posts, 3)  # Show 10 posts per page
-    page_number = request.GET.get("page")
+    page_number = request.headers.get('Page')
     print(page_number)
     print(f"Page counts {paginator.num_pages}")
     page_obj = paginator.get_page(page_number)
@@ -111,7 +111,7 @@ def posts(request):
     posts = Post.objects.all()
     posts = posts.order_by("-timestamp").all()
     paginator = Paginator(posts, 3)  # Show 10 posts per page
-    page_number = request.GET.get("page")
+    page_number = request.headers.get('Page')
     print(page_number)
     print(f"Page counts {paginator.num_pages}")
     page_obj = paginator.get_page(page_number)
@@ -125,6 +125,7 @@ def posts(request):
 
 
 def posts_user(request, user_id):
+
     page_number = request.headers.get('Page')
     print(page_number)
     

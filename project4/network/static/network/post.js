@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
     
     if (document.querySelector('#index-view')) {
-        loadPosts(1);
+        loadPosts(1, 'all');
     }
     else if (document.querySelector('#user-view')) {
-        loadUserPosts(1);
+        loadPosts(1, 'user');
     }
     if (document.querySelector('#following-view')) {
-        following(1);
+        loadPosts(1, 'following');
     }
 })
 
@@ -66,58 +66,24 @@ async function editPost(event, id) {
     })
 }
 
-function following(pageNumber) {
-    let postsView = document.querySelector('#posts-view');
-    const type = 'following';
-    postsView.innerHTML = '';
-    fetch(`following_posts/?page=${pageNumber}`)
-    .then(response => response.json())
-    .then(data => {
-        const postElements = [];
-        const pagesCount = data.meta.pagescount;
-        data.data.forEach(post => {
-            postElements.push(fillPost(post));
-        })
-        postElements.forEach(post => postsView.appendChild(post));
-        fillPaginator(pagesCount, pageNumber, type)
-    })
-    .catch(error => console.error(error));
-}
-
-function loadPosts(pageNumber) {
+function loadPosts(pageNumber, type) {
     let postsView = document.querySelector('#posts-view');
     postsView.innerHTML = '';
-    const type = 'all';
-    const url = `/posts/?page=${pageNumber}`;
-    
-    fetch(url)
-    .then(response => response.json())
-    .then(data => {
-        const postElements = [];
-        const pagesCount = data.meta.pagescount;
-        data.data.forEach(post => {
-            postElements.push(fillPost(post));
-        })
-        postElements.forEach(post => postsView.appendChild(post));
-        fillPaginator(pagesCount, pageNumber, type);
-    })
-    .catch(error => console.error(error));
-}
-
-function loadUserPosts(pageNumber) {
-    let postsView = document.querySelector('#posts-view');
-    postsView.innerHTML = '';
-    const user_id = document.querySelector('#user-id');
+    let url = '';
     const csrf = getCookie('csrftoken');
-    const type = 'user';
-    console.log(csrf)
-    fetch(`posts_user/${user_id.value}`, {
+    if (type === 'all') {url = `/posts/?page=${pageNumber}`}
+    else if (type === 'user') {
+        const user_id = document.querySelector('#user-id');
+        url = `posts_user/${user_id.value}`}
+    else if (type === 'following') {url = `following_posts/?page=${pageNumber}`};
+
+    fetch(url, {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrf, // Include the CSRF token
-            "Page": pageNumber
-        },
-    
+            'Page': pageNumber,
+            'Page-Type': type
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -176,7 +142,6 @@ function fillPaginator(count, number, type) {
         paginator.insertBefore(page, next);
     }
     // Set active page 
-    console.log(count === 1);
     paginator.querySelector(`#page-${number}`).className = 'page-item number active';
     // Disable next or prev switcher for first or last pages
     if (number === 1) {prev.className = 'page-item disabled'}
@@ -228,9 +193,8 @@ function fillPaginator(count, number, type) {
             // Set active page for selected page
             paginator.querySelector(`#page-${number}`).className = 'page-item number active';
             // Fetch new page if selected page is not current 
-            if (old !== number && type === 'all') { loadPosts(number); }
-            else if (old !== number && type === 'user'){loadUserPosts(number)}
-            else if (old !== number && type == 'following') (following(number));
+            if (old !== number) { loadPosts(number, type); }
+
             paginator.removeEventListener('click', handlePageClick);
         }
     }
