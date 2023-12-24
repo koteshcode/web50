@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
         loadPosts(1);
     }
     else if (document.querySelector('#user-view')) {
-        loadUserPosts();
+        loadUserPosts(1);
     }
     if (document.querySelector('#following-view')) {
-        following()
+        following(1);
     }
 })
 
@@ -57,7 +57,6 @@ async function editPost(event, id) {
             .then(response => response.json())
             .then(data => {
                 if (data.message === 'Succes') {
-                    console.log('Succes');
                     originalPost.innerHTML = data.data.post;
                     removeSaveButton();
                 } else {error = data.error}
@@ -67,16 +66,20 @@ async function editPost(event, id) {
     })
 }
 
-function following() {
+function following(pageNumber) {
     let postsView = document.querySelector('#posts-view');
-    fetch('following_posts')
+    const type = 'following';
+    postsView.innerHTML = '';
+    fetch(`following_posts/?page=${pageNumber}`)
     .then(response => response.json())
-    .then(posts => {
+    .then(data => {
         const postElements = [];
-        posts.forEach(post => {
+        const pagesCount = data.meta.pagescount;
+        data.data.forEach(post => {
             postElements.push(fillPost(post));
         })
         postElements.forEach(post => postsView.appendChild(post));
+        fillPaginator(pagesCount, pageNumber, type)
     })
     .catch(error => console.error(error));
 }
@@ -84,7 +87,9 @@ function following() {
 function loadPosts(pageNumber) {
     let postsView = document.querySelector('#posts-view');
     postsView.innerHTML = '';
+    const type = 'all';
     const url = `/posts/?page=${pageNumber}`;
+    
     fetch(url)
     .then(response => response.json())
     .then(data => {
@@ -94,23 +99,35 @@ function loadPosts(pageNumber) {
             postElements.push(fillPost(post));
         })
         postElements.forEach(post => postsView.appendChild(post));
-        fillPaginator(pagesCount, pageNumber);
+        fillPaginator(pagesCount, pageNumber, type);
     })
     .catch(error => console.error(error));
 }
 
-function loadUserPosts() {
+function loadUserPosts(pageNumber) {
     let postsView = document.querySelector('#posts-view');
+    postsView.innerHTML = '';
     const user_id = document.querySelector('#user-id');
-    console.log(user_id)
-    fetch(`posts_user/${user_id.value}`)
+    const csrf = getCookie('csrftoken');
+    const type = 'user';
+    console.log(csrf)
+    fetch(`posts_user/${user_id.value}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf, // Include the CSRF token
+            "Page": pageNumber
+        },
+    
+    })
     .then(response => response.json())
-    .then(posts => {
+    .then(data => {
         const postElements = [];
-        posts.forEach(post => {
+        const pagesCount = data.meta.pagescount;
+        data.data.forEach(post => {
             postElements.push(fillPost(post));
         })
         postElements.forEach(post => postsView.appendChild(post));
+        fillPaginator(pagesCount, pageNumber, type);
     })
     .catch(error => console.error(error));
 }
@@ -142,7 +159,7 @@ async function likePost(event, id) {
     .catch(error => console.error(error));
 }
 
-function fillPaginator(count, number) {
+function fillPaginator(count, number, type) {
     const old = number;
     const paginator = document.querySelector('#paginator');
     const prev = document.querySelector('#page-prev');
@@ -159,10 +176,16 @@ function fillPaginator(count, number) {
         paginator.insertBefore(page, next);
     }
     // Set active page 
+    console.log(count === 1);
     paginator.querySelector(`#page-${number}`).className = 'page-item number active';
     // Disable next or prev switcher for first or last pages
     if (number === 1) {prev.className = 'page-item disabled'}
-    else if (number === count) (next.className = 'page-item disabled');
+    else if (number === count) (next.className = 'page-item disabled')
+    if (count === 1) {
+        console.log(count);
+        prev.className = 'page-item disabled';
+        next.className = 'page-item disabled';
+    }
 
     function handlePageClick(event) {
         // Check if user clicked on pagintator pages
@@ -205,7 +228,9 @@ function fillPaginator(count, number) {
             // Set active page for selected page
             paginator.querySelector(`#page-${number}`).className = 'page-item number active';
             // Fetch new page if selected page is not current 
-            if (old !== number ) { loadPosts(number); }
+            if (old !== number && type === 'all') { loadPosts(number); }
+            else if (old !== number && type === 'user'){loadUserPosts(number)}
+            else if (old !== number && type == 'following') (following(number));
             paginator.removeEventListener('click', handlePageClick);
         }
     }
@@ -257,7 +282,7 @@ function composePaginatorElement() {
     const link = document.createElement('a');
     item.className = 'page-item number';
     link.className = 'page-link';
-    link.href='#';
+    link.href='javascript:void(0)';
     item.append(link);
     return item;
 }
@@ -319,4 +344,15 @@ async function fetchPost(id) {
       console.error('Error fetching data:', error);
       return null;
     }
+}
+
+function getCookie(name) {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=');
+        if (cookieName === name) {
+            return decodeURIComponent(cookieValue);
+        }
+    }
+    return null; // Cookie not found
 }

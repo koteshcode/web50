@@ -41,7 +41,18 @@ def following_posts(request):
     user_following = user.user_follower.values_list("user", flat=True)
     posts = Post.objects.filter(user__in=user_following)
     posts = posts.order_by("-timestamp").all()
-    return JsonResponse([post.serialize() for post in posts], safe=False, status=201)
+    paginator = Paginator(posts, 3)  # Show 10 posts per page
+    page_number = request.GET.get("page")
+    print(page_number)
+    print(f"Page counts {paginator.num_pages}")
+    page_obj = paginator.get_page(page_number)
+    serialized_posts = [post.serialize() for post in page_obj]
+    return JsonResponse({
+        "data":serialized_posts,
+        "meta": {
+            "pagescount": paginator.num_pages
+            },
+        }, safe=False, status=201)
     
 
 def login_view(request):
@@ -114,9 +125,21 @@ def posts(request):
 
 
 def posts_user(request, user_id):
+    page_number = request.headers.get('Page')
+    print(page_number)
+    
     posts = Post.objects.filter(user=user_id)
     posts = posts.order_by("-timestamp").all()
-    return JsonResponse([post.serialize() for post in posts], safe=False, status=201)
+    paginator = Paginator(posts, 3)  # Show 10 posts per page
+    page_obj = paginator.get_page(page_number)
+    serialized_posts = [post.serialize() for post in page_obj]
+    print(f"Page counts {paginator.num_pages}")
+    return JsonResponse({
+        "data":serialized_posts,
+        "meta": {
+            "pagescount": paginator.num_pages
+            },
+        }, safe=False, status=201)
 
 
 @csrf_exempt
