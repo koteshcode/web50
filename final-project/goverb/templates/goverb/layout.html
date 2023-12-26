@@ -24,7 +24,7 @@
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         {% if user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link" id="current-user" value="{{ user.username }}" href="/user/{{ user.id }}"><strong>{{ user.username }}</strong></a>
+                                <a class="nav-link" id="current-user"><strong>{{ user.username }}</strong></a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
