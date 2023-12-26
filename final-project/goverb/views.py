@@ -7,10 +7,17 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 
-from .models import User
+from .models import User,Verb
 
 def index(request):
-    return render(request, "goverb/index.html")
+    v = Verb.objects.order_by('?')[:10]
+    verbs = []
+    for verb in v:
+        verbs.append(verb.forms.split(","))
+        print(verb.forms.split(","))
+    return render(request, "goverb/index.html", {
+        "verbs": verbs
+    })
 
 
 def login_view(request):
