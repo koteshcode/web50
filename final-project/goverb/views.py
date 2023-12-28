@@ -88,17 +88,29 @@ def verbs_update(request):
         if type == "regular":
             v = Verb.objects.order_by('?')[:10]
         elif type == "repeat":
-            v = VerbScore.objects.filter(user_id=request.user).annotate(avg_score=Avg('score')).order_by('avg_score')
+            less_scored_verbs = VerbScore.objects.filter(user_id=request.user).annotate(avg_score=Avg('score')).order_by('avg_score')
             # Get the ids of the selected verbs
-            verbs_id = [verb.verb_id.id for verb in v]
+            verbs_id = [verb.verb_id.id for verb in less_scored_verbs]
             # Get the data for the selected verbs
             verbs_by_repeat = VerbScore.objects.filter(id__in=verbs_id).order_by('repeat')[:20]
             verbs_id_by_repeat = [verb.verb_id.id for verb in verbs_by_repeat]
             v = Verb.objects.filter(id__in=verbs_id_by_repeat).order_by('?')[:10]
         elif type == "explore":
-            v = Verb.objects.exclude(
-                id__in=VerbScore.objects.values_list('verb_id', flat=True)).annotate(
-                    repeat=Count('verb')).order_by('repeat')[:10]
+            user_verbs = VerbScore.objects.filter(user_id=request.user)
+            # if user have met all verbs
+            if user_verbs.count() > 110:
+                less_repeated_verbs = user_verbs.annotate(avg_reps=Avg('repeat')).order_by('avg_reps')
+                # Get the ids of the selected verbs
+                verbs_id = [verb.verb_id.id for verb in less_repeated_verbs]
+                print(verbs_id)
+                # Get the data for the selected verbs
+                verbs_by_repeat = VerbScore.objects.filter(id__in=verbs_id).order_by('repeat')[:20]
+                verbs_id_by_repeat = [verb.verb_id.id for verb in verbs_by_repeat]
+                v = Verb.objects.filter(id__in=verbs_id_by_repeat).order_by('?')[:10]
+            else:
+                verbs_id = [verb.verb_id.id for verb in user_verbs]
+                v = Verb.objects.exclude(id__in=verbs_id).order_by("?")[:10]
+         
         else:
             v = Verb.objects.order_by('?')[:10]
         verbs = []

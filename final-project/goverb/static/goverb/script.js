@@ -15,10 +15,12 @@ function addHint(q) {
     link.innerHTML = 'Get hint';
     link.className = 'text-center my-3';
     link.href = 'javascript:void[0]';
+    link.id = 'hint';
     link.addEventListener('click', () => {
         const div = document.createElement('div');
         div.className = 'col-3 border text-center text-success-emphasis fs-4 border-success border-1 rounded-3';
         div.innerHTML = q;
+        div.id = 'hint-verb';
         if (quiz.childElementCount < 5) {quiz.appendChild(div);}
         
 
@@ -46,25 +48,30 @@ async function getAnswer(q) {
     
             }
     
-            function handleKeyPress(event) {
+            async function handleKeyPress(event) {
                 if ( event.key === 'Enter') {
                     tries++;
                     if (event.target.value  === q ) {
                         console.log('true')
                         event.target.className = 'form-control is-valid';
-                        quiz.parentElement.innerHTML = '';
+                        
                         // Update data verb to server
                         // Resolve answer
                         answer.answer = true;
                         answer.tries = tries;
+                        const a = await showRightAnswer(q, answer.answer)
+                        quiz.parentElement.innerHTML = '';
                         resolve(answer);
                     }
                     if (tries !== 0 && quiz.childElementCount < 4) { addHint(q) }
                     if (tries > 3) {
-                        quiz.parentElement.innerHTML = '';
+                        
                         // Update data verb to server 
                         // Resolve answer
+                        
                         answer.tries = tries;
+                        const a = await showRightAnswer(q, answer.answer);
+                        quiz.parentElement.innerHTML = '';
                         resolve(answer);
                     }
                     // Set border to invalid
@@ -89,7 +96,7 @@ async function getAnswer(q) {
                 event.target.value = event.target.value.slice(-1);
             };
 
-            function handleInput(event) {
+            async function handleInput(event) {
                 if (event.key === 'Enter') {
                     // Create array for quiz word
                     const lettersArray = q.split('');
@@ -99,22 +106,26 @@ async function getAnswer(q) {
                     // Resolve after first 3 tries
                     if (tries > 3) {
                         console.log('miss');
-                        quiz.parentElement.innerHTML = '';
+                        
                         // Update data verb to server 
                         // Resolve answer
                         answer.tries = tries;
+                        const a = await showRightAnswer(q, answer.answer);
+                        quiz.parentElement.innerHTML = '';
                         resolve(answer);
                     }
                     // Iterate for each inpured 
-                    inputFields.forEach(input => {
+                    inputFields.forEach(input => async function () {
                         // Break if input doesnt match
                         if (input.value !== lettersArray[input.id]) {
                             inputFields.forEach(e => e.className = 'wrong')
                             return false;
                         } else {
-                            quiz.parentElement.innerHTML = '';
+                            
                             answer.tries = tries;
                             answer.answer = true;
+                            const a = await showRightAnswer(q, answer.answer);
+                            quiz.parentElement.innerHTML = '';
                             resolve(answer);
                         }
                     })
@@ -258,6 +269,34 @@ function letterQuiz(i, verbs) {
 function orderQuiz(i) {
     console.log('order quiz');
     return true;
+}
+
+async function showRightAnswer(q, answer) {
+    const quiz = document.getElementById('quiz');
+    const text = document.createElement('p');
+    const div = document.createElement('div');
+    let color = 'danger';
+    if (answer === true) {color = 'success';}
+    if (quiz.querySelector('#hint')) {quiz.querySelector('#hint').remove()};
+    if (quiz.querySelector('#hint-verb')) {quiz.querySelector('#hint-verb').remove();}
+    text.innerHTML = 'Right answer:';
+    text.className = `text-center my-3 text-${color}-emphasis`
+    div.className = `col-3 border text-center text-${color}-emphasis fs-4 border-${color} border-1 rounded-3`;
+    div.innerHTML = q;
+    if (quiz.childElementCount < 5) {
+        quiz.appendChild(text);
+        quiz.appendChild(div);
+    }
+
+    return new Promise((resolve) => {
+        let clickHandler = function () {
+            console.log("You clicked the element");
+            window.removeEventListener("click", clickHandler);
+            resolve(); // remove the event listener
+          };    
+        window.addEventListener("click", clickHandler);
+        
+    });
 }
 
 function wordQuiz (i, verbs) {
