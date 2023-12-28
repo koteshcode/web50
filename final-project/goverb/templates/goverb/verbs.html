@@ -1,0 +1,34 @@
+{% extends "goverb/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+<div class="container pt-5 justify-content-center">
+
+    {% if user.is_authenticated %}
+    <h3 id="verbs" class="pt-5 mb-4 text-center">Regular</h3>
+    <div id="word-view" class="container"></div>
+
+    <div id="letter-view" class="container"></div>
+
+    <div id="order-view" class="container"></div>
+    {% elif not user.is_authenticated and path == "/regular" %}
+    <h3 id="verbs" class="pt-5 mb-4 text-center">Regular</h3>
+    <div id="word-view" class="container"></div>
+
+    <div id="letter-view" class="container"></div>
+
+    <div id="order-view" class="container"></div>
+
+    <p class="text-center mt-5"><a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a> to score your progress</p>
+    {% else %}
+    <p class="text-center mt-5"><a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a> to get acces and score your progress </p>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block script %}
+
+{% endblock %}

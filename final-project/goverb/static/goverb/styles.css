@@ -1,0 +1,33 @@
+.dot-input {
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px dotted #0db461;
+    text-align: center;
+    padding: 0px;
+    width: 16px;
+}
+
+.wrong{
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px dotted #b40d37;
+    text-align: center;
+    padding: 0px;
+    width: 16px;
+}
+
+.wrong:hover {
+    background-color: #960a5c3b;
+}
+.wrong:focus {
+    background-color: #b90e3362;
+    outline: none;
+}
+
+.dot-input:hover {
+    background-color: #0a96673b;
+}
+.dot-input:focus {
+    background-color: #0eb98062;
+    outline: none;
+}

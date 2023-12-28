@@ -7,13 +7,13 @@
         <h3 class="pt-5 text-center mb-3">GO_Learn</h4>
         <div class="row justify-content-center text-center mb-5">
             <div class="col-3">
-                <button class="btn btn-primary">Repeat verbs</button>
+                <a type="submit" class="btn btn-primary" name="repeat" id="repeat" href="{% url 'repeat' %}">Repeat verbs</a>
             </div>
             <div class="col-3">
-                <button class="btn btn-primary">Regular</button>
+                <a type="submit" class="btn btn-primary"name="regular" href="{% url 'regular' %}">Regular</a>
             </div>
             <div class="col-3">
-                <button class="btn btn-primary">Explore verbs</button>
+                <a type="submit" class="btn btn-primary" name="explore" href="{% url 'explore' %}">Explore verbs</a>
             </div>
         </div>
         <table class="table table-striped mt-5">
@@ -27,7 +27,6 @@
             <tbody>
                 {% for verb in verbs %}
                 <tr>
-
                     {% for word in verb %}
                         <td>{{ word }}</td>
                     {% endfor %}

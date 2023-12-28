@@ -10,14 +10,22 @@ class Verb(models.Model):
     forms = models.TextField()
     freq = models.IntegerField(default=1)
 
+    def serialize(self):
+        return {
+            "verb": self.verb,
+            "forms":  self.forms.split(","),
+        }
+
 class VerbScore(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verb_score")
     verb_id = models.ForeignKey(Verb, on_delete=models.CASCADE, related_name="user_stats")
     is_first = models.BooleanField(default=False)
     hint = models.PositiveIntegerField(default=0)
     repeat = models.PositiveIntegerField(default=0)
-    score = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
+    score = models.DecimalField(max_digits=6, decimal_places=2, default=0.0)
 
+    class Meta:
+        ordering = ['-repeat']
 
     def increment_repeat(self):
         self.repeat += 1
