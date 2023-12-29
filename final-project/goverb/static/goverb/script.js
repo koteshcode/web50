@@ -77,28 +77,28 @@ async function getAnswer(q) {
         } else if (quiz.parentElement.id === 'letter-view') {
             console.log('letter check');
             let tries = 0;
+            const answerArray = [];
+            const lettersArray = q.split('');
             const inputFields = document.querySelectorAll('.dot-input');
 
             // Add an event listener to each input field
             inputFields.forEach((inputField) => {
                 console.log('add key listens')
+                answerArray.push(lettersArray[inputField.id]);
                 inputField.addEventListener('keydown', handleInput);
                 inputField.addEventListener('keyup', handleKeyInput);
             });
-
             // Add an event listener for the input event
             function handleKeyInput(event) {
                 // Keep only the last character entered
-                console.log(event.target.value)
                 event.target.value = event.target.value.slice(-1);
             };
 
             async function handleInput(event) {
                 if (event.key === 'Enter') {
                     // Create array for quized word
-                    console.log('enter');
-                    const lettersArray = q.split('');
-                    tries++
+                    tries++;
+                    const inputArray = [];
                     // Add hint if first time was not succefull guess
                     if (tries !== 0 && quiz.childElementCount < 4) { addHint(q) }
                     else if (quiz.querySelector('#hint-verb')) { answer.hint = 1 };
@@ -116,28 +116,20 @@ async function getAnswer(q) {
                         quiz.parentElement.innerHTML = '';
                         resolve(answer);
                     }
-                    // Iterate for each inputed letter
+                    // Prepare input array for comparison
                     inputFields.forEach(input => {
-                        // Break if input doesnt match
-                        console.log(input.id);
-                        if (input.value !== lettersArray[input.id]) {
-                            inputFields.forEach(e => e.className = 'wrong')
-                            return false;
-                        } else {
-                            // If input is correct update answer values
-                            answer.tries = tries;
-                            answer.answer = true;
-                            // Remove eventlisteners
-                            inputFields.forEach(input => {
-                                console.log('remove key listener')
-                                input.removeEventListener('keydown', handleInput)});
-                        }
+                        inputArray.push(input.value);
                     })
+                    if (JSON.stringify(inputArray) === JSON.stringify(answerArray)) {answer.answer = true;}
+                    else {inputFields.forEach(e => e.className = 'wrong')}
+
                     if (answer.answer) {
+                        answer.tries = tries;
                         // Set inputs to disabled and successfull
                         inputFields.forEach(input => {
                             input.disabled = true;
                             input.className = 'success';
+                            input.removeEventListener('keydown', handleInput);
                         });
                         const a = await showRightAnswer(q, answer.answer);
                         quiz.parentElement.innerHTML = '';
