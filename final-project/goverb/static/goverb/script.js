@@ -22,8 +22,6 @@ function addHint(q) {
         div.innerHTML = q;
         div.id = 'hint-verb';
         if (quiz.childElementCount < 5) {quiz.appendChild(div);}
-        
-
     })
     quiz.appendChild(link)
 }
@@ -39,41 +37,38 @@ async function getAnswer(q) {
     }
     return new Promise((resolve) => {
         if (quiz.parentElement.id === 'word-view') {
-            console.log('word view');
             let tries = 0;
+            input.addEventListener('keyup', handleKeyPress);
             
-            input.addEventListener('keydown', handleKeyPress);
-            
-            function handleInput(event) {
-    
-            }
-    
             async function handleKeyPress(event) {
                 if ( event.key === 'Enter') {
                     tries++;
+                    if (tries !== 0 && quiz.childElementCount < 4) { addHint(q) }
+                    else if (quiz.querySelector('#hint-verb')) { answer.hint = 1 }
+                    // Resolve after first 3 incorrect tries
+                    if (tries > 3) {
+                        // Update answer values, show right answer
+                        answer.tries = tries;
+                        input.removeEventListener('keyup', handleKeyPress);
+                        input.disabled = true;
+                        const a = await showRightAnswer(q, answer.answer);
+                        // Clear input and resolve
+                        quiz.parentElement.innerHTML = '';
+                        resolve(answer);
+                    }
                     if (event.target.value  === q ) {
                         console.log('true')
                         event.target.className = 'form-control is-valid';
-                        
-                        // Update data verb to server
-                        // Resolve answer
+                        // Update answer walues
                         answer.answer = true;
                         answer.tries = tries;
+                        input.removeEventListener('keyup', handleKeyPress);
+                        input.disabled = true;
                         const a = await showRightAnswer(q, answer.answer)
                         quiz.parentElement.innerHTML = '';
                         resolve(answer);
                     }
-                    if (tries !== 0 && quiz.childElementCount < 4) { addHint(q) }
-                    if (tries > 3) {
-                        
-                        // Update data verb to server 
-                        // Resolve answer
-                        
-                        answer.tries = tries;
-                        const a = await showRightAnswer(q, answer.answer);
-                        quiz.parentElement.innerHTML = '';
-                        resolve(answer);
-                    }
+
                     // Set border to invalid
                     event.target.className = 'form-control is-invalid';
                     event.target.value = '';
@@ -86,49 +81,68 @@ async function getAnswer(q) {
 
             // Add an event listener to each input field
             inputFields.forEach((inputField) => {
+                console.log('add key listens')
                 inputField.addEventListener('keydown', handleInput);
-                inputField.addEventListener('keydown', handleKeyInput);
+                inputField.addEventListener('keyup', handleKeyInput);
             });
 
             // Add an event listener for the input event
             function handleKeyInput(event) {
                 // Keep only the last character entered
+                console.log(event.target.value)
                 event.target.value = event.target.value.slice(-1);
             };
 
             async function handleInput(event) {
                 if (event.key === 'Enter') {
-                    // Create array for quiz word
+                    // Create array for quized word
+                    console.log('enter');
                     const lettersArray = q.split('');
                     tries++
                     // Add hint if first time was not succefull guess
-                    if (tries !== 0 && quiz.childElementCount < 4) { addHint(q) };
-                    // Resolve after first 3 tries
+                    if (tries !== 0 && quiz.childElementCount < 4) { addHint(q) }
+                    else if (quiz.querySelector('#hint-verb')) { answer.hint = 1 };
+                    // Resolve after first 3 incorrect tries
                     if (tries > 3) {
                         console.log('miss');
-                        
-                        // Update data verb to server 
-                        // Resolve answer
+                        // Update answer values answer is false
                         answer.tries = tries;
+                        inputFields.forEach(input => {
+                            console.log('remove key listener')
+                            input.disabled = true;
+                            input.removeEventListener('keydown', handleInput)});
+                        // Show right answer and resolve with false
                         const a = await showRightAnswer(q, answer.answer);
                         quiz.parentElement.innerHTML = '';
                         resolve(answer);
                     }
-                    // Iterate for each inpured 
-                    inputFields.forEach(input => async function () {
+                    // Iterate for each inputed letter
+                    inputFields.forEach(input => {
                         // Break if input doesnt match
+                        console.log(input.id);
                         if (input.value !== lettersArray[input.id]) {
                             inputFields.forEach(e => e.className = 'wrong')
                             return false;
                         } else {
-                            
+                            // If input is correct update answer values
                             answer.tries = tries;
                             answer.answer = true;
-                            const a = await showRightAnswer(q, answer.answer);
-                            quiz.parentElement.innerHTML = '';
-                            resolve(answer);
+                            // Remove eventlisteners
+                            inputFields.forEach(input => {
+                                console.log('remove key listener')
+                                input.removeEventListener('keydown', handleInput)});
                         }
                     })
+                    if (answer.answer) {
+                        // Set inputs to disabled and successfull
+                        inputFields.forEach(input => {
+                            input.disabled = true;
+                            input.className = 'success';
+                        });
+                        const a = await showRightAnswer(q, answer.answer);
+                        quiz.parentElement.innerHTML = '';
+                        resolve(answer);
+                    }
                 }
             }
 
@@ -165,7 +179,7 @@ async function chooseQuiz() {
         // For verbs choose one of 3 quizes
         for (let i = 0; i < verbs.length; i++) {
             let num = Math.floor(Math.random() * 2);
-            //let num = 0;
+            //let num = 1;
             if (num === 0) { 
                 // Run word quiz for selected verb
                 const q = await wordQuiz(i, verbs); 
@@ -229,7 +243,6 @@ function hideLetter(word, count) {
 }
 
 function letterQuiz(i, verbs) {
-    console.log('letters quiz');
     // Pick i verb from array 
     const verb = verbs[i];
     // Pick random word from verbs
@@ -253,7 +266,7 @@ function letterQuiz(i, verbs) {
     // Crate table with verbs
     for (let j = 0; j < verb.length; j++) {
         const col = document.createElement('div');
-        col.className = 'col-md-3 col-sm-6  border text-center border-1 rounded-3';
+        col.className = 'col-md-3 col-sm-6 m-2 border text-center border-1 rounded-3';
         if (j === q) {col.id = 'input';}
         else {col.innerHTML = `<span class="fs-4">${verb[j]}</span>`;}
         
@@ -292,7 +305,7 @@ async function showRightAnswer(q, answer) {
         let clickHandler = function () {
             console.log("You clicked the element");
             window.removeEventListener("click", clickHandler);
-            resolve(); // remove the event listener
+            resolve();
           };    
         window.addEventListener("click", clickHandler);
         
@@ -300,25 +313,28 @@ async function showRightAnswer(q, answer) {
 }
 
 function wordQuiz (i, verbs) {
-    console.log('words quiz');
+    // Take i verb from array
     const verb = verbs[i];
     const q = Math.floor(Math.random() * 3);
     const view = document.getElementById('word-view');
+    // From selected verb pick randomly one 
     const question = verb[q];
     const quiz = document.createElement('div');
 
+    // Create elements for verb forms
     for (let j = 0; j < 3; j++) {
+        // Create input form instead regular for quized verb 
         if (j === q ) {
             const input = document.createElement('input');
             const div = document.createElement('div');
-            div.className = 'col-md-3 col-sm-6 ';
-            input.className = 'form-control';
+            div.className = 'col-md-3 col-sm-6 px-0 m-2 ';
+            input.className = 'form-control text-center';
             input.id = 'user-answer';
             div.appendChild(input)
             quiz.appendChild(div);
         } else {
             const col = document.createElement('div');
-            col.className = 'col-md-3 col-sm-6 border text-center border-1 rounded-3';
+            col.className = 'col-md-3 col-sm-6 border text-center m-2 border-1 rounded-3';
             col.innerHTML = `<span class="fs-4">${verb[j]}</span>`;
             quiz.appendChild(col);
         }

@@ -7,6 +7,23 @@
     width: 16px;
 }
 
+.dot-input:hover {
+    background-color: #0a96673b;
+}
+.dot-input:focus {
+    background-color: #0eb98062;
+    outline: none;
+}
+
+.success {
+    background-color: #207d3c4d;
+    border: none;
+    border-bottom: 2px dotted #0db4608c;
+    text-align: center;
+    padding: 0px;
+    width: 16px;
+}
+
 .wrong{
     background-color: transparent;
     border: none;
@@ -24,10 +41,3 @@
     outline: none;
 }
 
-.dot-input:hover {
-    background-color: #0a96673b;
-}
-.dot-input:focus {
-    background-color: #0eb98062;
-    outline: none;
-}
